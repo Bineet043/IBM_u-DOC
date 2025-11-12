@@ -10,7 +10,20 @@ import time
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+# Try to get API key from Streamlit secrets first (for cloud), then .env (for local)
+api_key = None
+try:
+    # Streamlit Cloud uses st.secrets
+    api_key = st.secrets.get("GOOGLE_API_KEY")
+except:
+    # Local development uses .env
+    api_key = os.getenv('GOOGLE_API_KEY')
+
+if not api_key:
+    st.error("❌ GOOGLE_API_KEY not found! Please set it in Streamlit secrets or .env file.")
+    st.stop()
+
+genai.configure(api_key=api_key)
 
 def find_img(prompt, image_data):
     # Use a model available to your API key.
@@ -124,7 +137,7 @@ submit = st.button("Generate Data Report")
 submit1 = st.button("Collect Medicine Names")
 
 prompt1 = """
-    accurately scan and interpret all text, regardless of whether it's typed or handwritten. The output should be a brief, detailed description that systematically breaks down and explains every key component of the prescription, including (but not limited to): medication names, dosages, frequencies, duration, route of administration, and any specific instructions or warnings.
+    accurately scan all text, regardless of whether it's typed or handwritten. The output should be a brief, detailed description that systematically breaks down and explains every key component of the prescription, including (but not limited to): medication names, dosages, frequencies, duration, route of administration, and any specific instructions or warnings and explain only what is written
     """
 
 prompt2 = """
